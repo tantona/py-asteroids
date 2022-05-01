@@ -1,34 +1,22 @@
 import math
+import random
+import time
+from time import time
+
 import pyray as pr
+
+from asteroid import Asteroid
 from ship import Ship
-
-SCREEN_WIDTH = 600
-SCREEN_HEIGHT = 600
-
-
-class World:
-    def __init__(self):
-        self.objects = []
-
-    def add_object(self, obj):
-        self.objects.append(obj)
-
-    def handle_input(self):
-
-        for obj in self.objects:
-            obj.handle_input()
-
-    def update(self):
-        for obj in self.objects:
-            obj.update()
-
-    def draw(self):
-        for obj in self.objects:
-            obj.draw()
+from utils import get_random_positon
+from world import SCREEN_HEIGHT, SCREEN_WIDTH, world
 
 
-world = World()
-world.add_object(Ship(pr.Vector2(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)))
+def reset():
+    world.reset()
+    world.add_object(Ship(pr.Vector2(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)))
+    world.add_object(Asteroid(get_random_positon()))
+    world.add_object(Asteroid(get_random_positon()))
+    world.add_object(Asteroid(get_random_positon()))
 
 
 def update():
@@ -36,17 +24,27 @@ def update():
 
 
 def handle_input():
+
     world.handle_input()
+
+    if world.game_over and pr.is_key_pressed(pr.KEY_SPACE):
+        reset()
 
 
 def draw():
     world.draw()
 
 
+def cleanup():
+    world.cleanup()
+
+
 pr.init_window(SCREEN_WIDTH, SCREEN_HEIGHT, "Asteroids")
 
 
 def run():
+    pr.set_target_fps(60)
+    reset()
 
     while not pr.window_should_close():
         pr.begin_drawing()
@@ -57,6 +55,8 @@ def run():
         update()
 
         draw()
+
+        cleanup()
 
         pr.end_drawing()
     pr.close_window()

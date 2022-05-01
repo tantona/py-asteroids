@@ -1,16 +1,8 @@
 import math
 import pyray as pr
-
-
-class GameObject:
-    def draw(self):
-        pass
-
-    def handle_input(self):
-        pass
-
-    def update(self):
-        pass
+from game_object import GameObject
+from world import world, SCREEN_WIDTH, SCREEN_HEIGHT
+from bullet import Bullet
 
 
 class Ship(GameObject):
@@ -21,9 +13,10 @@ class Ship(GameObject):
         self.position = position
         self.rotation = 0
         self.size = 30
-        self.rotational_speed = 0.0010
+        self.rotational_speed = 0.075
         self.velocity = pr.Vector2(0, 0)
-        self.thrust = 0.00005
+        self.thrust = 0.1
+        self.hit_box_radius = 10
 
     def get_rotated_point(self, point: pr.Vector2):
         x1 = point.x
@@ -58,12 +51,17 @@ class Ship(GameObject):
         return pr.Vector2(math.cos(self.rotation) * self.thrust, -math.sin(self.rotation) * self.thrust)
 
     def update(self):
+
         self.position = pr.Vector2(
-            self.position.x + self.velocity.x, self.position.y + self.velocity.y)
+            (self.position.x + self.velocity.x) % SCREEN_WIDTH,
+            (self.position.y + self.velocity.y) % SCREEN_HEIGHT)
 
     def add_thrust(self):
         self.velocity = pr.Vector2(
             self.velocity.x + self.thrust_vector.x, self.velocity.y + self.thrust_vector.y)
+
+    def fire(self):
+        world.add_object(Bullet(self.position, self.rotation))
 
     def handle_input(self):
         if pr.is_key_down(pr.KEY_LEFT):
@@ -72,6 +70,9 @@ class Ship(GameObject):
             self.rotate("right")
         if pr.is_key_down(pr.KEY_UP):
             self.add_thrust()
+
+        if pr.is_key_pressed(pr.KEY_SPACE):
+            self.fire()
 
     def draw(self):
         nose = self.get_rotated_point(self.nose)
